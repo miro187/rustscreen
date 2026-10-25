@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#070b12">
+  <meta name="description" content="RustScreen — self-hosted screen sharing and remote control over your local network">
+  <title>RustScreen</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- ── Sign in ───────────────────────────────────────────────── -->
+    <section id="login-view" class="login-view">
+      <div class="login-aurora" aria-hidden="true"></div>
+      <main class="login-card">
+        <div class="brand">
+          <img src="/logo.svg" alt="" width="44" height="44">
+          <div class="brand-text">
+            <span class="brand-name">RustScreen</span>
+            <span class="brand-tag">Screen sharing over your LAN</span>
+          </div>
+        </div>
+
+        <div class="host-line">
+          <span class="pulse-dot" aria-hidden="true"></span>
+          <span id="login-host">Connecting…</span>
+        </div>
+
+        <form id="login-form" autocomplete="off">
+          <label class="field-label" for="pin">Access code</label>
+          <input
+            id="pin"
+            class="pin-input"
+            type="text"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+            autocapitalize="off"
+            spellcheck="false"
+            maxlength="64"
+            placeholder="PIN from the host screen"
+            aria-describedby="login-error">
+          <button class="btn primary big" id="login-button" type="submit">
+            <span>Connect</span>
+          </button>
+          <p id="login-error" class="form-error" role="alert" aria-live="polite"></p>
+        </form>
+
+        <div class="login-badges">
+          <span id="badge-tls" class="badge" hidden></span>
+          <span id="badge-control" class="badge" hidden></span>
+        </div>
+        <p class="login-note" id="login-note">
+          Ask the person at the host computer for the PIN shown in their terminal.
+        </p>
+      </main>
+      <footer class="login-footer">
+        <span>Private by design — nothing leaves your network.</span>
+        <span id="login-version" class="hidden"></span>
+      </footer>
+    </section>
+
+    <!-- ── Viewer ────────────────────────────────────────────────── -->
+    <section id="viewer-view" class="viewer-view" hidden>
+      <header id="topbar" class="topbar">
+        <div class="brand small">
+          <img src="/logo.svg" alt="" width="26" height="26">
+          <span class="brand-name">RustScreen</span>
+        </div>
+        <div class="host-chip">
+          <span id="host-name">host</span>
+          <span class="sep">·</span>
+          <span id="status-text">Connecting…</span>
+        </div>
+        <div class="top-spacer"></div>
+        <div id="hud" class="hud" aria-live="off">
+          <span class="hud-chip" id="hud-size">—</span>
+          <span class="hud-chip" id="hud-fps">—</span>
+          <span class="hud-chip" id="hud-bitrate">—</span>
+          <span class="hud-chip" id="hud-latency">—</span>
+          <span class="hud-chip accent" id="hud-transport">—</span>
+        </div>
+        <button class="icon-btn" id="btn-settings" type="button" aria-label="Settings" title="Settings">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09A1.7 1.7 0 0 0 15 4.6a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9v.09a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1Z"/></svg>
+        </button>
+      </header>
+
+      <main id="stage" class="stage" tabindex="0" aria-label="Remote screen">
+        <canvas id="screen-canvas" class="screen" width="1280" height="720" hidden></canvas>
+        <video id="screen-video" class="screen" autoplay playsinline muted></video>
+        <audio id="stream-audio" playsinline></audio>
+
+        <div id="overlay" class="overlay">
+          <div class="overlay-card">
+            <div class="spinner" id="overlay-spinner" aria-hidden="true"></div>
+            <div class="overlay-icon" id="overlay-icon" hidden aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+            </div>
+            <p id="overlay-text">Connecting…</p>
+            <button class="btn" id="overlay-retry" type="button" hidden>Try again</button>
+          </div>
+        </div>
+
+        <button class="control-pill" id="control-pill" type="button" hidden title="Release remote control">
+          <span class="rec-dot" aria-hidden="true"></span>
+          <span>You have control</span>
+          <span class="pill-action">Release</span>
+        </button>
+
+        <div class="control-hint" id="control-hint" hidden>
+          <span>Click the screen to take control</span>
+        </div>
+
+        <div class="actual-size-wrap" id="actual-hint" hidden>
+          <span>Actual size — drag to pan</span>
+        </div>
+      </main>
+
+      <footer id="bottombar" class="bottombar">
+        <button class="tool" id="btn-control" type="button" title="Take or release mouse & keyboard control">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4l7.5 16 2.2-6.3L20 11.5 4 4Z"/></svg>
+          <span>Control</span>
+        </button>
+        <button class="tool" id="btn-type" type="button" title="Send text to the remote computer">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg>
+          <span>Send text</span>
+        </button>
+        <button class="tool" id="btn-audio" type="button" title="Play remote audio" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+          <span>Audio</span>
+        </button>
+        <button class="tool" id="btn-fit" type="button" title="Toggle fit / actual size">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+          <span>Fit</span>
+        </button>
+        <button class="tool" id="btn-fullscreen" type="button" title="Full screen">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+          <span>Full screen</span>
+        </button>
+        <span class="bottom-spacer"></span>
+        <div class="conn">
+          <span class="conn-dot" id="conn-dot"></span>
+          <span id="conn-text">offline</span>
+        </div>
+      </footer>
+
+      <!-- ── Settings drawer ─────────────────────────────────────── -->
+      <aside id="settings-panel" class="settings-panel" hidden aria-label="Settings">
+        <div class="panel-head">
+          <h2>Settings</h2>
+          <button class="icon-btn" id="btn-close-settings" type="button" aria-label="Close settings">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+          </button>
+        </div>
+
+        <div class="panel-body">
+          <section class="panel-section">
+            <h3>Stream quality <span class="hint">applies to every viewer</span></h3>
+            <div class="preset-row" id="preset-row">
+              <button class="preset" type="button" data-preset="smooth">Smooth</button>
+              <button class="preset" type="button" data-preset="balanced">Balanced</button>
+              <button class="preset" type="button" data-preset="sharp">Sharp</button>
+            </div>
+
+            <div class="source-block">
+              <div class="row-between">
+                <label class="field-label" for="source-select">Capture source</label>
+                <button class="text-btn" id="btn-refresh-sources" type="button">Refresh</button>
+              </div>
+              <select id="source-select" class="select"></select>
+              <div class="thumb-frame">
+                <img id="source-thumb" alt="Selected source preview" hidden>
+                <span id="thumb-placeholder">Preview</span>
+              </div>
+            </div>
+
+            <label class="slider-row" for="fps-range">
+              <span>Frame rate</span>
+              <output id="fps-value">30 fps</output>
+            </label>
+            <input id="fps-range" class="range" type="range" min="5" max="60" step="1" value="30">
+
+            <label class="slider-row" for="bitrate-range">
+              <span>Bitrate</span>
+              <output id="bitrate-value">6.0 Mb/s</output>
+            </label>
+            <input id="bitrate-range" class="range" type="range" min="500" max="20000" step="250" value="6000">
+
+            <label class="slider-row" for="scale-range">
+              <span>Resolution</span>
+              <output id="scale-value">100%</output>
+            </label>
+            <input id="scale-range" class="range" type="range" min="25" max="100" step="5" value="100">
+
+            <div class="encoder-row">
+              <label class="field-label" for="encoder-select">Encoder</label>
+              <select id="encoder-select" class="select small"></select>
+            </div>
+
+            <button class="btn primary full" id="btn-apply-stream" type="button">Apply &amp; restart stream</button>
+            <p class="panel-note" id="stream-note"></p>
+          </section>
+
+          <section class="panel-section">
+            <h3>This device</h3>
+            <label class="field-label" for="transport-select">Video transport</label>
+            <select id="transport-select" class="select">
+              <option value="auto">Automatic (recommended)</option>
+              <option value="webcodecs">WebCodecs — lowest latency</option>
+              <option value="mse">Media Source — maximum compatibility</option>
+            </select>
+
+            <label class="toggle-row">
+              <span>Show performance overlay</span>
+              <input id="toggle-hud" type="checkbox" checked>
+            </label>
+            <label class="toggle-row">
+              <span>Fit screen to window</span>
+              <input id="toggle-fit" type="checkbox" checked>
+            </label>
+            <label class="toggle-row" id="audio-toggle-row" hidden>
+              <span>Play remote audio</span>
+              <input id="toggle-audio" type="checkbox">
+            </label>
+          </section>
+
+          <section class="panel-section">
+            <h3>Connection</h3>
+            <div class="kv"><span>Host</span><strong id="info-host">—</strong></div>
+            <div class="kv"><span>This session</span><strong id="info-client">—</strong></div>
+            <div class="kv"><span>Control</span><strong id="info-control">—</strong></div>
+            <div class="kv"><span>Viewers</span><strong id="info-viewers">—</strong></div>
+            <div class="kv"><span>Server</span><strong id="info-version">—</strong></div>
+            <div class="kv"><span>Security</span><strong id="info-security">—</strong></div>
+            <a class="text-btn cert-link" id="cert-link" href="/api/cert" download hidden>Download host certificate</a>
+            <button class="btn danger full" id="btn-logout" type="button">Disconnect &amp; sign out</button>
+          </section>
+        </div>
+      </aside>
+      <div class="panel-scrim" id="panel-scrim" hidden></div>
+
+      <!-- ── Send text dialog ────────────────────────────────────── -->
+      <div class="modal" id="type-modal" hidden role="dialog" aria-modal="true" aria-labelledby="type-title">
+        <div class="modal-card">
+          <h2 id="type-title">Send text to the host</h2>
+          <p class="muted">The text is typed into the remote computer as if you used its keyboard.</p>
+          <textarea id="type-text" rows="4" placeholder="Type or paste text…" spellcheck="false"></textarea>
+          <div class="modal-actions">
+            <button class="btn ghost" id="btn-paste-local" type="button">Paste from clipboard</button>
+            <span class="modal-spacer"></span>
+            <button class="btn ghost" id="btn-cancel-type" type="button">Cancel</button>
+            <button class="btn primary" id="btn-send-type" type="button">Send text</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="toasts" class="toasts" aria-live="polite"></div>
+    </section>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

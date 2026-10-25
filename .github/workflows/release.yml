@@ -1,0 +1,42 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Windows binary
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        run: cargo build --release
+
+      - name: Package
+        shell: pwsh
+        run: |
+          $name = "rustscreen-${{ github.ref_name }}-windows-x86_64"
+          New-Item -ItemType Directory -Path dist | Out-Null
+          Copy-Item target/release/rustscreen.exe dist/
+          Copy-Item README.md dist/README.md
+          Compress-Archive -Path dist/* -DestinationPath "$name.zip"
+          Get-FileHash "$name.zip" -Algorithm SHA256 |
+            ForEach-Object { "$($_.Hash)  $name.zip" } |
+            Out-File "$name.zip.sha256"
+
+      - name: Publish
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $name = "rustscreen-${{ github.ref_name }}-windows-x86_64"
+          gh release create "${{ github.ref_name }}" `
+            "$name.zip#RustScreen ${{ github.ref_name }} (Windows x86_64)" `
+            "$name.zip.sha256#SHA-256 checksum" `
+            --title "RustScreen ${{ github.ref_name }}" `
+            --generate-notes
