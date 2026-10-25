@@ -1,9 +1,9 @@
 [package]
 name = "rustscreen"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 rust-version = "1.85"
-description = "Self-hosted screen sharing and remote control over your local network — RustDesk-style, browser-based, in Rust."
+description = "Self-hosted LAN screen sharing and public code-based remote access — RustDesk-style, browser-first, in Rust."
 license = "MIT"
 repository = "https://github.com/miro187/rustscreen"
 homepage = "https://github.com/miro187/rustscreen"
@@ -11,15 +11,24 @@ readme = "README.md"
 keywords = ["screen-sharing", "remote-desktop", "rustdesk", "lan", "streaming"]
 categories = ["network-programming", "multimedia", "web-programming"]
 
+[[bin]]
+name = "rustscreen"
+path = "src/main.rs"
+
+[[bin]]
+name = "rustscreen-relay"
+path = "src/bin/relay.rs"
+
 [dependencies]
 anyhow = "1"
 axum = { version = "0.8", features = ["ws"] }
 axum-server = { version = "0.8", default-features = false, features = ["tls-rustls-no-provider"] }
 bytes = "1"
-clap = { version = "4", features = ["derive"] }
+clap = { version = "4", features = ["derive", "env"] }
 enigo = "0.6"
 futures-util = "0.3"
 hex = "0.4"
+http = "1"
 if-addrs = "0.15"
 qrcode = { version = "0.14", default-features = false, features = ["svg"] }
 rand = "0.8"
@@ -28,6 +37,7 @@ rustls = { version = "0.23", default-features = false, features = ["ring", "std"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tokio = { version = "1", features = ["full"] }
+tokio-tungstenite = { version = "0.30", features = ["native-tls"] }
 tokio-util = "0.7"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }

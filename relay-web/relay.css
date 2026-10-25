@@ -1,0 +1,64 @@
+/* Relay-specific additions on top of the shared RustScreen styles. */
+
+.relay-word {
+  color: #7dd3fc;
+  font-weight: 600;
+}
+
+.relay-sub {
+  margin: 20px 0 18px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+#connect-form .field-label {
+  margin: 12px 2px 7px;
+}
+
+#connect-form .pin-input {
+  margin-bottom: 4px;
+}
+
+.code-input {
+  letter-spacing: 0.14em;
+  font-size: 20px;
+}
+
+#connect-form .btn.big {
+  margin-top: 16px;
+}
+
+.login-note code {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: #bae6fd;
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.18);
+  padding: 1px 5px;
+  border-radius: 5px;
+}
+
+.login-footer a {
+  color: #7dd3fc;
+  text-decoration: none;
+}
+
+.login-footer a:hover {
+  text-decoration: underline;
+}
+
+/* The viewer starts as the full page; there is no settings drawer here. */
+#viewer-view .bottombar {
+  z-index: 30;
+}
+
+@media (max-width: 560px) {
+  .relay-sub {
+    margin: 16px 0 12px;
+    font-size: 12.5px;
+  }
+  .login-card .brand-tag {
+    max-width: 220px;
+  }
+}

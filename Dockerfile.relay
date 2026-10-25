@@ -1,0 +1,20 @@
+# Build the RustScreen relay in a minimal Debian image.
+#
+#   docker build -f Dockerfile.relay -t rustscreen-relay .
+#   docker run --rm -p 8090:8090 -e RUSTSCREEN_RELAY_TOKEN=change-me rustscreen-relay
+#
+# Put Caddy/nginx or a Cloudflare Tunnel in front for TLS. The relay honors
+# CF-Connecting-IP and X-Forwarded-For for rate limiting.
+
+FROM rust:1.85-bookworm AS build
+WORKDIR /app
+COPY . .
+RUN cargo build --release --bin rustscreen-relay
+
+FROM debian:bookworm-slim
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+COPY --from=build /app/target/release/rustscreen-relay /usr/local/bin/rustscreen-relay
+EXPOSE 8090
+ENTRYPOINT ["rustscreen-relay", "--bind", "0.0.0.0", "--port", "8090"]

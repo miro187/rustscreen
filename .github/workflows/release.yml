@@ -23,6 +23,7 @@ jobs:
           $name = "rustscreen-${{ github.ref_name }}-windows-x86_64"
           New-Item -ItemType Directory -Path dist | Out-Null
           Copy-Item target/release/rustscreen.exe dist/
+          Copy-Item target/release/rustscreen-relay.exe dist/
           Copy-Item README.md, LICENSE, CHANGELOG.md dist/
           Compress-Archive -Path dist/* -DestinationPath "$name.zip"
           $hash = (Get-FileHash "$name.zip" -Algorithm SHA256).Hash

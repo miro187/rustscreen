@@ -45,5 +45,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: rustscreen-windows-x86_64
-          path: target/release/rustscreen.exe
+          path: |
+            target/release/rustscreen.exe
+            target/release/rustscreen-relay.exe
           if-no-files-found: error

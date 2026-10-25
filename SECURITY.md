@@ -35,9 +35,9 @@ What it does protect against:
 
 Out of scope / known limitations:
 
-- **Do not expose RustScreen directly to the internet.** If you need remote
-  access, put it behind a VPN (WireGuard/Tailscale) or an authenticating reverse
-  proxy with a real TLS certificate.
+- **Do not expose the LAN host (`rustscreen`) directly to the internet.** Use
+  the relay + a Cloudflare Tunnel/reverse proxy for public access, or put the
+  LAN host behind a VPN (WireGuard/Tailscale).
 - The self-signed certificate is not validated by a CA; users must verify and
   accept the warning once. The certificate is reused across restarts.
 - A viewer who knows the PIN can change stream settings (resolution, bitrate,
@@ -52,10 +52,38 @@ Out of scope / known limitations:
   from `%APPDATA%\rustscreen\tls\key.pem` (ACL-protected by the user profile) and
   can start their own server instance.
 
+## Relay mode (public access)
+
+`rustscreen-relay` is a public-facing pairing service; treat it as such.
+
+- Agents authenticate with a **shared relay token** (`--relay-token`). Anyone
+  with the token can register an agent, but cannot watch a PC without its
+  9-digit code + PIN.
+- Viewers authenticate with **code + PIN**. PIN attempts are rate-limited per
+  client IP (12 failures/minute); the relay trusts `CF-Connecting-IP` and
+  `X-Forwarded-For` when present.
+- Only one viewer per code in the current implementation. Codes are ephemeral
+  and disappear on agent/relay restart.
+- TLS is terminated by Cloudflare or your reverse proxy. The relay itself
+  speaks HTTP on localhost/tailnet. **The relay can see the PIN and the video;
+  there is no end-to-end encryption yet.** Run your own relay if that matters.
+- The relay statically serves its viewer UI with a strict CSP. It stores no
+  data and has no database.
+- Use a strong `--password` (not the default 6-digit PIN) for long-lived agents.
+  Rotate the relay token if it leaks. Prefer a named Cloudflare Tunnel + domain
+  or a VPS with a real certificate; **Quick Tunnels are temporary and
+  unauthenticated at the edge**.
+- For a view-only presentation, start the agent with `--control none`.
+- Apply normal server hardening: firewall, OS updates, run as a non-root user,
+  keep the relay updated, and consider an IP allowlist/VPN in front for private
+  deployments.
+- Do not run a public relay on an untrusted machine: it handles remote-control
+  sessions.
+
 ## Hardening checklist
 
-- Keep the default PIN or set a strong `--password`; never use `--password none`
-  on a shared network.
+- Set a strong `--password`; never use `--password none` on a shared network.
+  Relay mode always requires a PIN (it generates one if none is supplied).
 - Keep TLS enabled unless you are on a fully trusted wired network.
 - Use `--control none` for presentations, or `--control single` for support
   sessions.

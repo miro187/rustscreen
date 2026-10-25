@@ -136,6 +136,15 @@ pub struct Cli {
     #[arg(long)]
     pub open: bool,
 
+    /// Agent mode: connect outbound to a RustScreen relay instead of listening.
+    /// Example: --relay https://abc.trycloudflare.com
+    #[arg(long, value_name = "URL")]
+    pub relay: Option<String>,
+
+    /// Shared secret for registering with the relay (printed by rustscreen-relay)
+    #[arg(long, value_name = "TOKEN", env = "RUSTSCREEN_RELAY_TOKEN")]
+    pub relay_token: Option<String>,
+
     /// List capturable displays and windows, then exit
     #[arg(long)]
     pub list_sources: bool,

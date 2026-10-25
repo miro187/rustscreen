@@ -1,5 +1,6 @@
 //! RustScreen — self-hosted screen sharing and remote control for your LAN.
 
+mod agent;
 mod auth;
 mod capture;
 mod cli;
@@ -8,6 +9,7 @@ mod h264;
 mod input;
 mod mp4;
 mod net;
+mod protocol;
 mod qr;
 mod server;
 mod stream;
@@ -63,6 +65,10 @@ async fn run() -> Result<()> {
     if cli.list_sources {
         print_sources()?;
         return Ok(());
+    }
+
+    if cli.relay.is_some() {
+        return agent::run(cli.clone()).await;
     }
 
     let ffmpeg = Arc::new(
