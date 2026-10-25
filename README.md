@@ -18,7 +18,7 @@ A RustDesk-style remote desktop that runs as a single Rust binary — viewers ju
 
 ## Features
 
-- **Browser-first viewers** — Windows, macOS, Linux, Android, iOS: anything with a modern browser works. No client install.
+- **Browser-first viewers** — Windows, macOS, Linux, Android and modern iPadOS/iOS: any recent Chrome/Edge, Firefox or Safari works. No client install.
 - **Low-latency H.264** — Chrome/Edge use **WebCodecs** (canvas rendering, ~1 frame latency). Firefox/Safari fall back to **fragmented MP4 + Media Source Extensions** automatically.
 - **Real remote control** — mouse, wheel, multi-monitor coordinates, full keyboard mapping, Unicode/clipboard text injection.
 - **Display & window sources** — pick a monitor, a window, all displays, or a privacy-safe demo pattern, with live thumbnails.
@@ -209,6 +209,7 @@ RustScreen is designed for **trusted local networks**. Read [SECURITY.md](SECURI
 | Linux build fails | Install the X11/PipeWire development packages listed above. Wayland capture is not supported yet. |
 | macOS capture is black | Grant Screen Recording permission to the terminal/binary in *System Settings → Privacy & Security*. |
 | Viewer limit reached | Increase `--max-viewers` (default 8). |
+| iPhone/iPad shows a blank player | Very old iOS versions cannot play H.264 in a MediaSource. Use a recent Safari (iOS/iPadOS 17+) or an Android device with Chrome. |
 | Window capture shows the wrong area | A window source captures the visible screen rectangle chosen when the stream starts. Re-apply the source after moving or resizing the window. |
 
 Logging: set `RUST_LOG=debug` (or `rustscreen=debug`) for detailed logs. `RUST_LOG=rustscreen=trace` logs every input event.
