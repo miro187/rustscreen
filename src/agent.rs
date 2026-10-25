@@ -235,10 +235,21 @@ async fn run_connection(ctx: AgentContext) -> Result<ConnectionEnd> {
     let mut frames: Option<JoinHandle<()>> = None;
     let mut viewers = 0usize;
 
+    // Cloudflare (and many proxies) close idle WebSockets after ~100s. Keep the
+    // agent connection warm even while no viewer is attached.
+    let mut heartbeat = tokio::time::interval(Duration::from_secs(20));
+    heartbeat.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
+
     let outcome: Result<ConnectionEnd> = loop {
         let message = tokio::select! {
             _ = tokio::signal::ctrl_c() => {
                 break Ok(ConnectionEnd::Stopped);
+            }
+            _ = heartbeat.tick() => {
+                if let Ok(text) = serde_json::to_string(&AgentToRelay::Pong { ts: 0 }) {
+                    let _ = tx.try_send(Message::Text(text.into()));
+                }
+                continue;
             }
             message = stream.next() => message,
         };

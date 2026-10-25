@@ -22,6 +22,14 @@ All notable changes to RustScreen are documented here. The format follows
 - Agent reconnect loop, pipeline-on-demand (capture only while a viewer is
   connected), and input release on disconnect.
 
+## [0.2.1] — 2026-10-25
+
+### Fixed
+
+- Keep the agent → relay WebSocket alive with a 20-second heartbeat. Cloudflare
+  and other proxies close idle WebSockets after ~100 seconds, which made the
+  agent reconnect and receive a new code for no reason.
+
 ## [0.1.0] — 2026-10-25
 
 First public release.
