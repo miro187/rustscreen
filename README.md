@@ -209,6 +209,7 @@ RustScreen is designed for **trusted local networks**. Read [SECURITY.md](SECURI
 | Linux build fails | Install the X11/PipeWire development packages listed above. Wayland capture is not supported yet. |
 | macOS capture is black | Grant Screen Recording permission to the terminal/binary in *System Settings → Privacy & Security*. |
 | Viewer limit reached | Increase `--max-viewers` (default 8). |
+| Window capture shows the wrong area | A window source captures the visible screen rectangle chosen when the stream starts. Re-apply the source after moving or resizing the window. |
 
 Logging: set `RUST_LOG=debug` (or `rustscreen=debug`) for detailed logs. `RUST_LOG=rustscreen=trace` logs every input event.
 
