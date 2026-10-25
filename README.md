@@ -1,5 +1,9 @@
 # RustScreen
 
+[![CI](https://github.com/miro187/rustscreen/actions/workflows/ci.yml/badge.svg)](https://github.com/miro187/rustscreen/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/miro187/rustscreen)](https://github.com/miro187/rustscreen/releases)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 **Self-hosted screen sharing and remote control for your local network.**
 A RustDesk-style remote desktop that runs as a single Rust binary — viewers just open a URL in their browser. No accounts, no cloud, no WebRTC signaling server. Everything stays on your LAN.
 

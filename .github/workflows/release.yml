@@ -23,11 +23,11 @@ jobs:
           $name = "rustscreen-${{ github.ref_name }}-windows-x86_64"
           New-Item -ItemType Directory -Path dist | Out-Null
           Copy-Item target/release/rustscreen.exe dist/
-          Copy-Item README.md dist/README.md
+          Copy-Item README.md, LICENSE, CHANGELOG.md dist/
           Compress-Archive -Path dist/* -DestinationPath "$name.zip"
-          Get-FileHash "$name.zip" -Algorithm SHA256 |
-            ForEach-Object { "$($_.Hash)  $name.zip" } |
-            Out-File "$name.zip.sha256"
+          $hash = (Get-FileHash "$name.zip" -Algorithm SHA256).Hash
+          # LF line endings keep the checksum file portable (sha256sum -c).
+          [System.IO.File]::WriteAllText("$name.zip.sha256", "$hash  $name.zip`n")
 
       - name: Publish
         shell: pwsh
